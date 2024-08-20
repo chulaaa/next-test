@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tailwindcss/aspect-ratio": "^0.4.2",
     "@types/node": "22.4.1",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
