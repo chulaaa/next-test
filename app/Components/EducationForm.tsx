@@ -18,6 +18,44 @@ const EducationForm: React.FC = () => {
 const [message, setMessage] = useState<string | null>(null);
 
 const addEducationEntry = () => {
+    const lastEntry: EducationEntry = educationEntries[educationEntries.length - 1];
+
+    // Ensure all other fields are filled before checking date validation
+    if (
+        !lastEntry.institutionName ||
+        !lastEntry.fieldOfStudy ||
+        !lastEntry.degree ||
+        !lastEntry.endDate ||
+        !lastEntry.location
+    ) {
+        setMessage('Please complete the current education entry before adding another.');
+        return; // Exit early if any field is empty
+    }
+
+    // Date validation regex for MM/YY format
+    const dateRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
+
+    // Check if the endDate is in a valid MM/YY format
+    if (!dateRegex.test(lastEntry.endDate)) {
+        setMessage('Please enter a valid date in MM/YY format.');
+        return;
+    }
+
+    // Split the month and year
+    const [month, year] = lastEntry.endDate.split('/').map(Number);
+
+    // Get the current month and year
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1; 
+    const currentYear = currentDate.getFullYear() % 100; 
+
+    // Check if the entered date is in the future
+    if (year > currentYear || (year === currentYear && month > currentMonth)) {
+        setMessage('The date cannot be in the future.');
+        return;
+    }
+
+    // Add the new entry if all validations pass
     if (educationEntries.length < 3) {
         setEducationEntries([
             ...educationEntries,
@@ -29,18 +67,86 @@ const addEducationEntry = () => {
     }
 };
 
+
+// const addEducationEntry = () => {
+//     const lastEntry: EducationEntry = educationEntries[educationEntries.length - 1];
+
+//     // Ensure all other fields are filled and the date is valid
+//     if (
+//         lastEntry.institutionName &&
+//         lastEntry.fieldOfStudy &&
+//         lastEntry.degree &&
+//         lastEntry.endDate &&
+//         lastEntry.location
+//     ) {
+//         if (educationEntries.length < 3) {
+//             setEducationEntries([
+//                 ...educationEntries,
+//                 { institutionName: '', fieldOfStudy: '', degree: '', endDate: '', location: '', isStudent: false },
+//             ]);
+//             setMessage(null); 
+//         } else {
+//             setMessage('You can only add up to three education entries.');
+//         }
+//     } else {
+//         setMessage('Please complete the current education entry before adding another.');
+//     }
+
+//     // Date validation regex for MM/YY format
+//     const dateRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
+
+//     // Check if the endDate is in a valid MM/YY format
+//     if (!dateRegex.test(lastEntry.endDate)) {
+//         setMessage('Please enter a valid date in MM/YY format.');
+//         return;
+//     }
+
+//     // Split the month and year
+//     const [month, year] = lastEntry.endDate.split('/').map(Number);
+
+//     // Get the current month and year
+//     const currentDate = new Date();
+//     const currentMonth = currentDate.getMonth() + 1; 
+//     const currentYear = currentDate.getFullYear() % 100; 
+
+//     // Check if the entered date is in the future
+//     if (year > currentYear || (year === currentYear && month > currentMonth)) {
+//         setMessage('The date cannot be in the future.');
+//         return;
+//     }
+// };
+
 const removeEducationEntry = (index: number) => {
     const updatedEntries = educationEntries.filter((_, i) => i !== index);
     setEducationEntries(updatedEntries);
     setMessage(null); 
 };
 
+
 const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
-const { name, value, type, checked } = event.target;
-const updatedEntries = educationEntries.map((entry, i) =>
-    i === index ? { ...entry, [name]: type === 'checkbox' ? checked : value } : entry
-);
-setEducationEntries(updatedEntries);
+    const { name, value, type, checked } = event.target;
+    const updatedEntries = educationEntries.map((entry, i) =>
+        i === index ? { ...entry, [name]: type === 'checkbox' ? checked : value } : entry
+    );
+
+    // Date validation
+    if (name === 'endDate') {
+        const dateRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
+        const [month, year] = value.split('/').map(Number);
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth() + 1;
+        const currentYear = currentDate.getFullYear() % 100;
+
+        if (!dateRegex.test(value)) {
+            setMessage('Please enter a valid date in MM/YY format.');
+        } else if (year > currentYear || (year === currentYear && month > currentMonth)) {
+            setMessage('The date cannot be in the future.');
+        } else {
+            setMessage(null); 
+        }
+    }
+
+    setEducationEntries(updatedEntries);
 };
 
 return (
@@ -136,7 +242,6 @@ return (
             onChange={(e) => handleChange(index, e)}
             className="border border-[#0061F9] bg-[#F7FCFF] p-2 rounded w-full mt-1 outline-none"
             />
-
         </div>
         </div>
     </div>
@@ -161,7 +266,7 @@ return (
     </button>
     </div>
 
-    {message && <p className="text-red-500 mt-2">{message}</p>}
+    {message && <p className="text-red-500 mt-2 text-[14px]">{message}</p>}
 
 </div>
 );
